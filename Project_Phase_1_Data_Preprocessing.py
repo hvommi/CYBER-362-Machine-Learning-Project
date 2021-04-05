@@ -146,3 +146,96 @@ df.drop(columns=['NumDots','SubdomainLevel','PathLevel','UrlLength','NumDash','N
                    'PctExtResourceUrls'], inplace=True)
 print(df.columns)
 print("Shape after final clean up of data: " + str(df.shape))
+
+#------------------------------------------------------------
+#   PHASE II-III: DATA EXPLORATION
+#------------------------------------------------------------
+#Removing featueres that are 80% correlated:
+    
+correlated_features = set() #for storing correlated values
+correlation_matrix = df.corr()
+column_pairs = [] #correlation value for each column pair added from matrix
+
+for i in range(len(correlation_matrix .columns)):
+    for j in range(i):
+        if abs(correlation_matrix.iloc[i, j]) > 0.70:
+            colname = correlation_matrix.columns[i]
+            correlated_features.add(colname) 
+            column_pairs.append(str(correlation_matrix.columns[i]) + " vs. " 
+                                + str(correlation_matrix.columns[j]) + ": "
+                             + str(abs(correlation_matrix.iloc[i, j]) ))
+df.drop(labels=correlated_features, axis=1, inplace=True)
+print("Shape of data after dropping correlated features: " + str(df.shape))
+#-----------------------------------------------------------
+print(correlated_features)
+print(column_pairs)
+#Removing features with very little variety:
+# from sklearn.model_selection import train_test_split
+from sklearn.feature_selection import VarianceThreshold
+
+constant_filter = VarianceThreshold(threshold=0.01) #threshold for similarity 
+constant_filter.fit(df)
+len(df.columns[constant_filter.get_support()])
+constant_columns = [column for column in df.columns
+ if column not in df.columns[constant_filter.get_support()]]
+print(constant_columns) #prints the featurers in dataset that contain constant values 0 no varieety
+df.drop(labels=constant_columns, axis=1, inplace=True)
+print("Shape of data after dropping features with little variation: " + str(df.shape))
+
+#--------------------------------------------------------------
+#Setting up heat map to identify variables that have strongest correlation with target:
+import seaborn as sns
+features = []
+index = 0
+targetValIndex = -1
+for column in df.columns:
+    if column != 'CLASS_LABEL':
+        features.append(column)
+    else:
+       targetValIndex = index #index of class label
+    index += 1
+
+X = features 
+Y =['CLASS_LABEL'] #target column = CLASS LABEL 
+# print(df.columns)
+
+#get correlations of each features in dataset
+corrmat = df.corr()
+top_corr_features = corrmat.index
+plt.figure(figsize=(20,20))
+#plot heat map
+#g=sns.heatmap(df[top_corr_features].corr(),annot=True,cmap="RdYlGn")
+ 
+#--------------------------------------------------------------
+import numpy as np
+from sklearn.ensemble import ExtraTreesClassifier
+import matplotlib.pyplot as plt
+model = ExtraTreesClassifier()
+numFeatures = len(features)
+X = df.iloc[:, 0:numFeatures] #problem - this still contains CLASS LABEL
+print(X)
+Y = df.iloc[:, targetValIndex]
+print(Y)
+model.fit(X,Y)
+print(model.feature_importances_) #use inbuilt class feature_importances of tree based classifiers
+#plot graph of feature importances for better visualization
+feat_importances = pd.Series(model.feature_importances_, index=X.columns)
+feat_importances.nlargest(7).plot(kind='barh')
+plt.show()
+#--------------------------------------------------------------
+# #use chi-squared values to identify seven most relevant features: 
+# from sklearn.feature_selection import SelectKBest
+# from sklearn.feature_selection import chi2
+# #apply SelectKBest class to extract top 7 best features
+# bestfeatures = SelectKBest(score_func=chi2, k=7)
+# numFeatures = len(features)
+# X = df.iloc[:, 0:numFeatures]
+# print(X)
+# Y = df.iloc[:, targetValIndex]
+# fit = bestfeatures.fit(X,Y)
+# dfscores = pd.DataFrame(fit.scores_)
+# dfcolumns = pd.DataFrame(X.columns)
+# #concat two dataframes for better visualization
+# featureScores = pd.concat([dfcolumns,dfscores],axis=1)
+# featureScores.columns = ['Specs','Score'] #naming the dataframe columns
+# print(featureScores.nlargest(7,'Score')) #print 10 best features
