@@ -224,6 +224,22 @@ feat_importances = pd.Series(model.feature_importances_, index=X.columns)
 feat_importances.nlargest(7).plot(kind='barh')
 plt.show()
 #--------------------------------------------------------------
+#Use DBSCAN for clustering: 
+#import Kmeans
+from sklearn.cluster import KMeans
+from sklearn.cluster import DBSCAN
+#define the model
+clustermodel = DBSCAN(min_samples=10)
+#create clusters
+dsc = clustermodel.fit(df.to_numpy())
+pred_y = clustermodel.fit_predict(df)
+df['test'] = pred_y
+import seaborn as sns
+
+#pair plot to show cluserting vs CLASS_LABEL
+sns.pairplot(df, hue='CLASS_LABEL')    
+    
+#--------------------------------------------------------------
 # #use chi-squared values to identify seven most relevant features: 
 # from sklearn.feature_selection import SelectKBest
 # from sklearn.feature_selection import chi2
