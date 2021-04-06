@@ -213,6 +213,7 @@ import matplotlib.pyplot as plt
 model = ExtraTreesClassifier()
 numFeatures = len(features)
 X = df.iloc[:, 0:numFeatures] #problem - this still contains CLASS LABEL
+X.drop(labels='CLASS_LABEL', axis=1, inplace=True)
 print(X)
 Y = df.iloc[:, targetValIndex]
 print(Y)
