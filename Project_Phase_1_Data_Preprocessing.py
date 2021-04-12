@@ -89,7 +89,7 @@ print("Shape after dropping N/A rows: " + str(df.shape))
 #in the interest of readability, only a few columns' data will be shown on the box plot to demonstrate outliers:
 plt.figure()
 df[['NumDots', 'PathLevel', 'UrlLength', 'NumDash']].plot.box()
-plt.show()
+#plt.show()
 
 #print(df.columns)
 #----------------------------------------------------------------------
@@ -117,7 +117,7 @@ print(df.shape)
 #box plot still has additional outlier dots, but the shape was notably updated:
 plt.figure()
 df[['NumDots', 'PathLevel', 'UrlLength', 'NumDash']].plot.box()
-plt.show()
+#plt.show()
 
 #------------------------------------------------------------------------
 from sklearn.preprocessing import StandardScaler
@@ -137,7 +137,7 @@ df[['NumDotsNorm','SubdomainLevelNorm','PathLevelNorm','UrlLengthNorm','NumDashN
 
 plt.figure()
 df[['NumDotsNorm', 'PathLevelNorm', 'UrlLengthNorm', 'NumDashNorm']].plot.box()
-plt.show()
+#plt.show()
 print("Shape after normalizing data: " + str(df.shape))
 #------------------------------------------------------------------------
 #clean up old columns:
@@ -212,33 +212,247 @@ from sklearn.ensemble import ExtraTreesClassifier
 import matplotlib.pyplot as plt
 model = ExtraTreesClassifier()
 numFeatures = len(features)
-X = df.iloc[:, 0:numFeatures] #problem - this still contains CLASS LABEL
+X = df.iloc[:, 0:numFeatures]  
 X.drop(labels='CLASS_LABEL', axis=1, inplace=True)
-print(X)
+print("df x" + str(X))
 Y = df.iloc[:, targetValIndex]
-print(Y)
+print("df y: " + str(Y))
 model.fit(X,Y)
 print(model.feature_importances_) #use inbuilt class feature_importances of tree based classifiers
 #plot graph of feature importances for better visualization
-feat_importances = pd.Series(model.feature_importances_, index=X.columns)
-feat_importances.nlargest(7).plot(kind='barh')
-plt.show()
+#feat_importances = pd.Series(model.feature_importances_, index=X.columns)
+#feat_importances.nlargest(7).plot(kind='barh')
+#plt.show()
 #--------------------------------------------------------------
 #Use DBSCAN for clustering: 
 #import Kmeans
-from sklearn.cluster import KMeans
-from sklearn.cluster import DBSCAN
-#define the model
-clustermodel = DBSCAN(min_samples=10)
-#create clusters
-dsc = clustermodel.fit(df.to_numpy())
-pred_y = clustermodel.fit_predict(df)
-df['test'] = pred_y
-import seaborn as sns
+# from sklearn.cluster import KMeans
+# from sklearn.cluster import DBSCAN
+# #define the model
+# clustermodel = DBSCAN(min_samples=10)
+# #create clusters
+# dsc = clustermodel.fit(df.to_numpy())
+# pred_y = clustermodel.fit_predict(df)
+# df['test'] = pred_y
+# import seaborn as sns
 
 #pair plot to show cluserting vs CLASS_LABEL
-sns.pairplot(df, hue='CLASS_LABEL')    
+#sns.pairplot(df, hue='CLASS_LABEL')    
+
+#------------------------------------------------------------
+#   PHASE IV: Exploratory Data Analysis & Feature selection Using Decision Trees
+#------------------------------------------------------------
+
+#Creating Decision Tree
+from sklearn import tree
+from sklearn.model_selection import KFold
+from sklearn.metrics import f1_score
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import plot_roc_curve
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.tree import DecisionTreeClassifier
+from matplotlib import pyplot as plt
+import pandas as pd
+import numpy as np
+
+print("decision trees??")
+# clf = tree.DecisionTreeClassifier(max_depth=3)
+# clf = clf.fit(X, Y)
+# #plt.figure(figsize=(70,70))
+# tree.plot_tree(clf.fit(X, Y), filled=True, fontsize=8)
     
+# #k-fold + assessing min_sample_split value: 
+# kf=KFold(n_splits=5, random_state=None, shuffle=True)
+ 
+# #Return evenly spaced numbers over a specified interval.
+# min_samples_splits = np.linspace(0.1, 1.0, 10, endpoint=True)
+# print(min_samples_splits)
+ 
+# #avg_f1_test=[]
+# avg_f1_train=[]
+# #this array will be used to display the number of the trees
+# avg_n_leaves=[]
+# #try different min sample splits
+# #these arrays will store f1 value for each fold in cross validation 
+# f1_train=[]
+# #f1_test=[]
+# recall_train=[]
+# avg_recall_train=[]
+# precision_train=[]
+# avg_precision_train=[]
+# auc_train=[]
+# avg_auc_train=[]
+# for mss in min_samples_splits:
+     
+   
+     
+#     #perform k-fold for the given min_sample_split value
+#     for train_index, test_index in kf.split(X):
+#         #X and Y are dataframes. Therefore, we use iloc to select rows.
+#         X_train =X.iloc[train_index] 
+#         Y_train =Y.iloc[train_index] 
+      
+#         #create a new model for the given min_samples_split
+#         clf = tree.DecisionTreeClassifier(min_samples_split=mss, max_depth=3)
+#         #use the training set to train the tree
+#         clf = clf.fit(X_train, Y_train)
+#         #predict both training and testing cases. 
+#         #Y_test_predicted=clf.predict(X_test)
+#         Y_train_predicted=clf.predict(X_train)
+         
+#         #store the f1 scores of the training and testing sets.  
+#         #f1_test.append(f1_score(Y_test,Y_test_predicted,pos_label=0))       
+        
+#         f1_train.append(f1_score(Y_train,Y_train_predicted,pos_label=0))
+         
+#         #n_leaves.append(clf.get_n_leaves())
+     
+#     #calculate the average of the f1 scores after cross validation     
+#     #avg_f1_test.append(np.mean(f1_test))
+#     avg_f1_train.append(np.mean(f1_train))
+    
+#     auc_train.append(roc_auc_score(Y_train, Y_train_predicted))
+#     recall_train.append(recall_score(Y_train, Y_train_predicted))
+#     precision_train.append(precision_score(Y_train, Y_train_predicted))
+#     # avg_auc_train.append(np.mean(auc_train))
+#     # avg_recall_train.append(np.mean(recall_train))
+#     # avg_precision_train.append(np.mean(precision_train))
+                            
+#     #avg_n_leaves.append(np.mean(n_leaves))
+     
+# for x in range(0, len(auc_train)):
+#     print(" | AUC: " + str(auc_train[x]) + " | Recall: " + str(recall_train[x]) 
+#           + " | Precision: " + str(precision_train[x]) + " | F1: " + str(f1_train[x]))
+    
+# #     #------ min split vs. f1
+# # plt.figure(figsize=(4,4))
+# # #plt.plot(min_samples_splits,avg_f1_test,label='Testing Set')    
+# # plt.plot(min_samples_splits,avg_f1_train,label='Training Set')  
+# # plt.legend()
+# # plt.xticks(min_samples_splits)
+# # plt.grid(color='b', axis='x', linestyle='-.', linewidth=1,alpha=0.2)
+# # plt.xlabel('Minimum Sample Split Fraction')
+# # plt.ylabel('F1')
+
+# #--------- min split vs. auc curve
+# plt.figure(figsize=(4,4))
+# #plt.plot(min_samples_splits,avg_f1_test,label='Testing Set')    
+# plt.plot(min_samples_splits,auc_train,label='Training Set')   
+# plt.legend()
+# plt.xticks(min_samples_splits)
+# plt.grid(color='b', axis='x', linestyle='-.', linewidth=1,alpha=0.2)
+# plt.xlabel('Minimum Sample Split Fraction')
+# plt.ylabel('AUC')
+
+#plot_roc_curve(clf, X, Y)
+
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+# clf = tree.DecisionTreeClassifier(min_samples_split=0.1)  #based on results from previous run above
+# clf = clf.fit(X, Y)
+# #plt.figure(figsize=(70,70))
+# tree.plot_tree(clf.fit(X, Y), filled=True, fontsize=8)
+    
+#k-fold + assessing min_sample_split value: 
+kf=KFold(n_splits=5, random_state=None, shuffle=True)
+ 
+#Return evenly spaced numbers over a specified interval.
+max_depths = np.linspace(1, 29, 11, endpoint=True)
+print(max_depths)
+ 
+#avg_f1_test=[]
+avg_f1_train=[]
+#this array will be used to display the number of the trees
+avg_n_leaves=[]
+#try different min sample splits
+#these arrays will store f1 value for each fold in cross validation 
+f1_train=[]
+#f1_test=[]
+recall_train=[]
+avg_recall_train=[]
+precision_train=[]
+avg_precision_train=[]
+auc_train=[]
+avg_auc_train=[]
+for md in max_depths:
+     
+   
+     
+    #perform k-fold for the given min_sample_split value
+    for train_index, test_index in kf.split(X):
+        #X and Y are dataframes. Therefore, we use iloc to select rows.
+        X_train =X.iloc[train_index] 
+        Y_train =Y.iloc[train_index] 
+      
+        #create a new model for the given min_samples_split
+        clf = tree.DecisionTreeClassifier(min_samples_split=0.1, max_depth=md)
+        #use the training set to train the tree
+        clf = clf.fit(X_train, Y_train)
+        #predict both training and testing cases. 
+        #Y_test_predicted=clf.predict(X_test)
+        Y_train_predicted=clf.predict(X_train)
+         
+        #store the f1 scores of the training and testing sets.  
+        #f1_test.append(f1_score(Y_test,Y_test_predicted,pos_label=0))       
+        
+        f1_train.append(f1_score(Y_train,Y_train_predicted,pos_label=0))
+         
+        #n_leaves.append(clf.get_n_leaves())
+     
+    #calculate the average of the f1 scores after cross validation     
+    #avg_f1_test.append(np.mean(f1_test))
+    avg_f1_train.append(np.mean(f1_train))
+    
+    auc_train.append(roc_auc_score(Y_train, Y_train_predicted))
+    recall_train.append(recall_score(Y_train, Y_train_predicted))
+    precision_train.append(precision_score(Y_train, Y_train_predicted))
+    # avg_auc_train.append(np.mean(auc_train))
+    # avg_recall_train.append(np.mean(recall_train))
+    # avg_precision_train.append(np.mean(precision_train))
+                            
+    #avg_n_leaves.append(np.mean(n_leaves))
+     
+for x in range(0, len(auc_train)):
+    print(" | AUC 2: " + str(auc_train[x]) + " | Recall: " + str(recall_train[x]) 
+          + " | Precision: " + str(precision_train[x]) + " | F1: " + str(f1_train[x]))
+    
+#     #------ min split vs. f1
+# plt.figure(figsize=(4,4))
+# #plt.plot(min_samples_splits,avg_f1_test,label='Testing Set')    
+# plt.plot(min_samples_splits,avg_f1_train,label='Training Set')  
+# plt.legend()
+# plt.xticks(min_samples_splits)
+# plt.grid(color='b', axis='x', linestyle='-.', linewidth=1,alpha=0.2)
+# plt.xlabel('Minimum Sample Split Fraction')
+# plt.ylabel('F1')
+
+#--------- min split vs. auc curve
+plt.figure(figsize=(4,4))
+tree.plot_tree(clf.fit(X, Y), filled=True, fontsize=8)
+#plt.plot(min_samples_splits,avg_f1_test,label='Testing Set')    
+plt.plot(max_depths,auc_train,label='Training Set')   
+plt.legend()
+plt.xticks(max_depths)
+plt.grid(color='b', axis='x', linestyle='-.', linewidth=1,alpha=0.2)
+plt.xlabel('Maximum Depth')
+plt.ylabel('AUC')
+
+plot_roc_curve(clf, X, Y)
+
+ #----------------------------------------
+#roc plots: 
+#29 max depth vs 6 max depth w/ mss = 0.1
+clf_29 = tree.DecisionTreeClassifier(min_samples_split=0.1, max_depth=29)
+ #use the training set to train the tree
+clf_29 = clf_29.fit(X, Y) #original x/y dataframes
+plot_roc_curve(clf_29, X, Y)
+
+clf_6 = tree.DecisionTreeClassifier(min_samples_split=0.1, max_depth=6)
+ #use the training set to train the tree
+clf_6 = clf_6.fit(X, Y) #original x/y dataframes
+plot_roc_curve(clf_6, X, Y)
+
 #--------------------------------------------------------------
 # #use chi-squared values to identify seven most relevant features: 
 # from sklearn.feature_selection import SelectKBest
