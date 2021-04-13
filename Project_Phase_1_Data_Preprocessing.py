@@ -257,95 +257,93 @@ import pandas as pd
 import numpy as np
 
 print("decision trees??")
-# clf = tree.DecisionTreeClassifier(max_depth=3)
-# clf = clf.fit(X, Y)
-# #plt.figure(figsize=(70,70))
-# tree.plot_tree(clf.fit(X, Y), filled=True, fontsize=8)
+clf = tree.DecisionTreeClassifier(max_depth=3)
+clf = clf.fit(X, Y)
+#plt.figure(figsize=(70,70))
+tree.plot_tree(clf.fit(X, Y), filled=True, fontsize=8)
     
-# #k-fold + assessing min_sample_split value: 
-# kf=KFold(n_splits=5, random_state=None, shuffle=True)
+#k-fold + assessing min_sample_split value: 
+kf=KFold(n_splits=5, random_state=None, shuffle=True)
  
-# #Return evenly spaced numbers over a specified interval.
-# min_samples_splits = np.linspace(0.1, 1.0, 10, endpoint=True)
-# print(min_samples_splits)
+#Return evenly spaced numbers over a specified interval.
+min_samples_splits = np.linspace(0.1, 1.0, 10, endpoint=True)
+print(min_samples_splits)
  
-# #avg_f1_test=[]
-# avg_f1_train=[]
-# #this array will be used to display the number of the trees
-# avg_n_leaves=[]
-# #try different min sample splits
-# #these arrays will store f1 value for each fold in cross validation 
-# f1_train=[]
-# #f1_test=[]
-# recall_train=[]
-# avg_recall_train=[]
-# precision_train=[]
-# avg_precision_train=[]
-# auc_train=[]
-# avg_auc_train=[]
-# for mss in min_samples_splits:
+#avg_f1_test=[]
+avg_f1_train=[]
+#this array will be used to display the number of the trees
+avg_n_leaves=[]
+#try different min sample splits
+#these arrays will store f1 value for each fold in cross validation 
+f1_train=[]
+#f1_test=[]
+recall_train=[]
+avg_recall_train=[]
+precision_train=[]
+avg_precision_train=[]
+auc_train=[]
+avg_auc_train=[]
+for mss in min_samples_splits:
      
    
      
-#     #perform k-fold for the given min_sample_split value
-#     for train_index, test_index in kf.split(X):
-#         #X and Y are dataframes. Therefore, we use iloc to select rows.
-#         X_train =X.iloc[train_index] 
-#         Y_train =Y.iloc[train_index] 
+    #perform k-fold for the given min_sample_split value
+    for train_index, test_index in kf.split(X):
+        #X and Y are dataframes. Therefore, we use iloc to select rows.
+        X_train =X.iloc[train_index] 
+        Y_train =Y.iloc[train_index] 
       
-#         #create a new model for the given min_samples_split
-#         clf = tree.DecisionTreeClassifier(min_samples_split=mss, max_depth=3)
-#         #use the training set to train the tree
-#         clf = clf.fit(X_train, Y_train)
-#         #predict both training and testing cases. 
-#         #Y_test_predicted=clf.predict(X_test)
-#         Y_train_predicted=clf.predict(X_train)
+        #create a new model for the given min_samples_split
+        clf = tree.DecisionTreeClassifier(min_samples_split=mss, max_depth=3)
+        #use the training set to train the tree
+        clf = clf.fit(X_train, Y_train)
+        #predict both training and testing cases. 
+        #Y_test_predicted=clf.predict(X_test)
+        Y_train_predicted=clf.predict(X_train)
          
-#         #store the f1 scores of the training and testing sets.  
-#         #f1_test.append(f1_score(Y_test,Y_test_predicted,pos_label=0))       
+        #store the f1 scores of the training and testing sets.  
+        #f1_test.append(f1_score(Y_test,Y_test_predicted,pos_label=0))       
         
-#         f1_train.append(f1_score(Y_train,Y_train_predicted,pos_label=0))
-         
-#         #n_leaves.append(clf.get_n_leaves())
+        f1_train.append(f1_score(Y_train,Y_train_predicted,pos_label=0))
+        auc_train.append(roc_auc_score(Y_train, Y_train_predicted))
+        recall_train.append(recall_score(Y_train, Y_train_predicted))
+        precision_train.append(precision_score(Y_train, Y_train_predicted))
+        #n_leaves.append(clf.get_n_leaves())
      
-#     #calculate the average of the f1 scores after cross validation     
-#     #avg_f1_test.append(np.mean(f1_test))
-#     avg_f1_train.append(np.mean(f1_train))
-    
-#     auc_train.append(roc_auc_score(Y_train, Y_train_predicted))
-#     recall_train.append(recall_score(Y_train, Y_train_predicted))
-#     precision_train.append(precision_score(Y_train, Y_train_predicted))
-#     # avg_auc_train.append(np.mean(auc_train))
-#     # avg_recall_train.append(np.mean(recall_train))
-#     # avg_precision_train.append(np.mean(precision_train))
+    #calculate the average of the f1 scores after cross validation     
+    #avg_f1_test.append(np.mean(f1_test))
+    avg_f1_train.append(np.mean(f1_train))   
+    avg_auc_train.append(np.mean(auc_train))
+    avg_recall_train.append(np.mean(recall_train))
+    avg_precision_train.append(np.mean(precision_train))
                             
-#     #avg_n_leaves.append(np.mean(n_leaves))
+    #avg_n_leaves.append(np.mean(n_leaves))
      
-# for x in range(0, len(auc_train)):
-#     print(" | AUC: " + str(auc_train[x]) + " | Recall: " + str(recall_train[x]) 
-#           + " | Precision: " + str(precision_train[x]) + " | F1: " + str(f1_train[x]))
+for x in range(0, len(avg_auc_train)):
+    print(" | AUC: " + str(avg_auc_train[x]) + " | Recall: " + str(avg_recall_train[x]) 
+          + " | Precision: " + str(avg_precision_train[x]) + " | F1: " + str(avg_f1_train[x]))
     
-# #     #------ min split vs. f1
-# # plt.figure(figsize=(4,4))
-# # #plt.plot(min_samples_splits,avg_f1_test,label='Testing Set')    
-# # plt.plot(min_samples_splits,avg_f1_train,label='Training Set')  
-# # plt.legend()
-# # plt.xticks(min_samples_splits)
-# # plt.grid(color='b', axis='x', linestyle='-.', linewidth=1,alpha=0.2)
-# # plt.xlabel('Minimum Sample Split Fraction')
-# # plt.ylabel('F1')
-
-# #--------- min split vs. auc curve
+#     #------ min split vs. f1
 # plt.figure(figsize=(4,4))
 # #plt.plot(min_samples_splits,avg_f1_test,label='Testing Set')    
-# plt.plot(min_samples_splits,auc_train,label='Training Set')   
+# plt.plot(min_samples_splits,avg_f1_train,label='Training Set')  
 # plt.legend()
 # plt.xticks(min_samples_splits)
 # plt.grid(color='b', axis='x', linestyle='-.', linewidth=1,alpha=0.2)
 # plt.xlabel('Minimum Sample Split Fraction')
-# plt.ylabel('AUC')
+# plt.ylabel('F1')
 
-#plot_roc_curve(clf, X, Y)
+#--------- min split vs. auc curve
+plt.figure(figsize=(4,4))
+#plt.plot(min_samples_splits,avg_f1_test,label='Testing Set')    
+plt.plot(min_samples_splits,avg_auc_train,label='Training Set')   
+plt.legend()
+plt.xticks(min_samples_splits)
+plt.grid(color='b', axis='x', linestyle='-.', linewidth=1,alpha=0.2)
+plt.xlabel('Minimum Sample Split Fraction')
+plt.ylabel('AUC')
+
+plot_roc_curve(clf, X, Y)
 
 #------------------------------------------------------------------------
 #------------------------------------------------------------------------
@@ -395,27 +393,24 @@ for md in max_depths:
          
         #store the f1 scores of the training and testing sets.  
         #f1_test.append(f1_score(Y_test,Y_test_predicted,pos_label=0))       
-        
+        auc_train.append(roc_auc_score(Y_train, Y_train_predicted))
         f1_train.append(f1_score(Y_train,Y_train_predicted,pos_label=0))
-         
+        recall_train.append(recall_score(Y_train, Y_train_predicted))
+        precision_train.append(precision_score(Y_train, Y_train_predicted))
         #n_leaves.append(clf.get_n_leaves())
      
     #calculate the average of the f1 scores after cross validation     
     #avg_f1_test.append(np.mean(f1_test))
     avg_f1_train.append(np.mean(f1_train))
-    
-    auc_train.append(roc_auc_score(Y_train, Y_train_predicted))
-    recall_train.append(recall_score(Y_train, Y_train_predicted))
-    precision_train.append(precision_score(Y_train, Y_train_predicted))
-    # avg_auc_train.append(np.mean(auc_train))
-    # avg_recall_train.append(np.mean(recall_train))
-    # avg_precision_train.append(np.mean(precision_train))
+    avg_auc_train.append(np.mean(auc_train))
+    avg_recall_train.append(np.mean(recall_train))
+    avg_precision_train.append(np.mean(precision_train))
                             
     #avg_n_leaves.append(np.mean(n_leaves))
      
-for x in range(0, len(auc_train)):
-    print(" | AUC 2: " + str(auc_train[x]) + " | Recall: " + str(recall_train[x]) 
-          + " | Precision: " + str(precision_train[x]) + " | F1: " + str(f1_train[x]))
+for x in range(0, len(avg_auc_train)):
+    print(" | AUC 2: " + str(avg_auc_train[x]) + " | Recall: " + str(avg_recall_train[x]) 
+          + " | Precision: " + str(avg_precision_train[x]) + " | F1: " + str(avg_f1_train[x]))
     
 #     #------ min split vs. f1
 # plt.figure(figsize=(4,4))
@@ -427,16 +422,17 @@ for x in range(0, len(auc_train)):
 # plt.xlabel('Minimum Sample Split Fraction')
 # plt.ylabel('F1')
 
-#--------- min split vs. auc curve
-plt.figure(figsize=(4,4))
-tree.plot_tree(clf.fit(X, Y), filled=True, fontsize=8)
+#--------- max depth vs. auc curve
+# plt.figure(figsize=(4,4))
+# tree.plot_tree(clf.fit(X, Y), filled=True, fontsize=8)
 #plt.plot(min_samples_splits,avg_f1_test,label='Testing Set')    
-plt.plot(max_depths,auc_train,label='Training Set')   
+plt.plot(max_depths,avg_auc_train,label='Training Set')   
 plt.legend()
 plt.xticks(max_depths)
 plt.grid(color='b', axis='x', linestyle='-.', linewidth=1,alpha=0.2)
 plt.xlabel('Maximum Depth')
 plt.ylabel('AUC')
+plt.show()
 
 plot_roc_curve(clf, X, Y)
 
