@@ -22,6 +22,7 @@ df=pd.read_csv('Phishing_Legitimate_train_missing_data.csv',na_values=['',' ','n
 #setting index to id
 
 df.set_index('id')
+print(df.head(4))
 
 #Checking sums of missing values for each column
 df.isna().sum()
@@ -422,10 +423,11 @@ for x in range(0, len(avg_auc_train)):
 # plt.xlabel('Minimum Sample Split Fraction')
 # plt.ylabel('F1')
 
-#--------- max depth vs. auc curve
+
 # plt.figure(figsize=(4,4))
 # tree.plot_tree(clf.fit(X, Y), filled=True, fontsize=8)
-#plt.plot(min_samples_splits,avg_f1_test,label='Testing Set')    
+#plt.plot(min_samples_splits,avg_f1_test,label='Testing Set')
+#--------- max depth vs. auc curve    
 plt.plot(max_depths,avg_auc_train,label='Training Set')   
 plt.legend()
 plt.xticks(max_depths)
