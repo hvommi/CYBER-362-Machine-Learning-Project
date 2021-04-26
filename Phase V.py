@@ -177,6 +177,7 @@ from sklearn import svm
 kf=KFold(n_splits=2, random_state=0, shuffle=True) 
 # ^^ modify these to adjust model accuracy vv
 C_values = np.linspace(0.1, 100, 20, endpoint=True)
+print(C_values)
  
  
 avg_auc_test=[]
@@ -230,3 +231,21 @@ plt.xlabel('C')
 plt.ylabel('F1')
 
 
+#-------------------------------------------------
+#           MODEL RESULTS 
+#-------------------------------------------------
+clf = svm.SVC(C=15,kernel='rbf')
+clf.fit(X, Y)
+Y_pre=clf.predict(X)
+ 
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import plot_confusion_matrix
+ 
+print('Accuracy:', accuracy_score(Y, Y_pre))
+print('Precision:',precision_score(Y, Y_pre))
+print('Recall:', recall_score(Y, Y_pre))
+print('Confusion Matrix', confusion_matrix(Y, Y_pre))
+plot_confusion_matrix(clf, X, Y)
