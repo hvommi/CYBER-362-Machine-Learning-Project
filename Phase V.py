@@ -147,9 +147,9 @@ print("Shape after final clean up of data: " + str(df.shape))
 
 
 #---------------------------------------------------------------------
-#KEEP ONLY 7 FEATURERS + ID (Based on previous decision tree analysis)
+#                       FEATURE SELECTION
 #---------------------------------------------------------------------
-
+#KEEP ONLY 7 FEATURERS + ID (Based on previous decision tree analysis)
 selectedFeatures = ['id','UrlLengthNorm', 'InsecureForms', 'NumDashNorm', 
     'NumPercentNorm', 'HostnameLengthNorm', 'MissingTitle', 'IframeOrFrame', 'CLASS_LABEL']
 for col in df.columns:
@@ -160,7 +160,7 @@ print(df.columns)
 
 
 #---------------------------------------------------------------------
-#                        BUILDING THE MODEL
+#                        BUILDING SVM MODEL
 #---------------------------------------------------------------------
 df.set_index('id')
 print(df.head(5))
@@ -174,7 +174,9 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import f1_score
 from sklearn import svm
  
-kf=KFold(n_splits=2, random_state=0, shuffle=True) 
+#kf=KFold(n_splits=2, random_state=0, shuffle=True) 
+#kf=KFold(n_splits=10, random_state=0, shuffle=True) 
+kf=KFold(n_splits=20, random_state=0, shuffle=True) 
 # ^^ modify these to adjust model accuracy vv
 C_values = np.linspace(0.1, 100, 20, endpoint=True)
 print(C_values)
@@ -185,6 +187,7 @@ avg_auc_train=[]
 avg_f1_test=[]
 avg_f1_train=[]
  
+#OPTIMIZING C-VALUE: ---------------------------------------------------------
 for c in C_values:
     #these arrays will store acu value for each fold in cross validation 
     auc_train=[]
@@ -211,7 +214,7 @@ for c in C_values:
     avg_f1_test.append(np.mean(f1_test))
     avg_f1_train.append(np.mean(f1_train))
  
- 
+ #C vs AUC
 plt.figure(figsize=(10,4))
 plt.plot(C_values,avg_auc_test,label='Testing Set')    
 plt.plot(C_values,avg_auc_train,label='Training Set')  
@@ -221,23 +224,59 @@ plt.grid(color='b', axis='x', linestyle='-.', linewidth=1,alpha=0.2)
 plt.xlabel('C')
 plt.ylabel('AUC')
  
-plt.figure(figsize=(10,4))
-plt.plot(C_values,avg_f1_test,label='Testing Set')    
-plt.plot(C_values,avg_f1_train,label='Training Set')  
-plt.legend()
-plt.xticks(C_values,rotation='vertical')
-plt.grid(color='b', axis='x', linestyle='-.', linewidth=1,alpha=0.2)
-plt.xlabel('C')
-plt.ylabel('F1')
-
+#C vs F1
+# plt.figure(figsize=(10,4))
+# plt.plot(C_values,avg_f1_test,label='Testing Set')    
+# plt.plot(C_values,avg_f1_train,label='Training Set')  
+# plt.legend()
+# plt.xticks(C_values,rotation='vertical')
+# plt.grid(color='b', axis='x', linestyle='-.', linewidth=1,alpha=0.2)
+# plt.xlabel('C')
+# plt.ylabel('F1')
+#-------------------------------------------------------------------------
 
 #-------------------------------------------------
-#           MODEL RESULTS 
+#           TRAINING MODEL RESULTS 
 #-------------------------------------------------
-clf = svm.SVC(C=15,kernel='rbf')
+
+# import seaborn as sns
+# from sklearn.datasets import make_classification
+# X, Y = make_classification(n_samples=1000, n_features=6,
+#                            n_informative=4, n_redundant=1,
+#                            random_state=0, 
+#                            class_sep=0.5,
+#                            n_clusters_per_class=1,
+#                            shuffle=True)
+ 
+# from sklearn.model_selection import train_test_split
+ 
+# X_train, X_test, Y_train, Y_test = train_test_split(X, Y,test_size=0.50,shuffle=False,random_state=1)
+ 
+# from sklearn.ensemble import AdaBoostClassifier
+ 
+# #define the base model
+# bm = svm.SVC(C=15,kernel='rbf')
+# #assign the base model to the AdoBoostClassifier
+# clf = AdaBoostClassifier(base_estimator=bm, n_estimators=10, random_state=0)
+# clf.fit(X_train, Y_train)
+# Y_test_predicted=clf.predict(X_test)
+# #score the overall model's accuracy 
+# clf.score(X_test, Y_test)
+
+# from sklearn.metrics import roc_auc_score
+# from sklearn.metrics import plot_roc_curve
+ 
+# fig, ax = plt.subplots()
+# plot_roc_curve(clf, X_test, Y_test,name='All 10 Models', lw=1, ax=ax)
+# plot_roc_curve(clf.estimators_[0], X_test, Y_test,name='Model 0', lw=1, ax=ax)
+# plot_roc_curve(clf.estimators_[4], X_test, Y_test, name='Model 49', lw=1, ax=ax)
+# plot_roc_curve(clf.estimators_[9], X_test, Y_test, name='Model 99', lw=1, ax=ax)
+# plt.show()
+
 clf.fit(X, Y)
 Y_pre=clf.predict(X)
- 
+print(Y_pre)
+
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
@@ -249,3 +288,80 @@ print('Precision:',precision_score(Y, Y_pre))
 print('Recall:', recall_score(Y, Y_pre))
 print('Confusion Matrix', confusion_matrix(Y, Y_pre))
 plot_confusion_matrix(clf, X, Y)
+
+
+#-------------------------------------------------
+#           CLEANING TEST DATA 
+#-------------------------------------------------
+test_df=pd.read_csv('Phishing_Legitimate_test_student.csv',na_values=['',' ','n/a'])
+#setting index to id
+test_df.set_index('id')
+#Checking sums of missing values for each column
+test_df.isna().sum()
+#true or false to show what rows have missing values
+print(test_df.isnull().any(axis=1))
+print(test_df.shape)
+#determining outliers:
+#in the interest of readability, only a few columns' data will be shown on the box plot to demonstrate outliers:
+plt.figure()
+test_df[['NumDots', 'PathLevel', 'UrlLength', 'NumDash']].plot.box()
+#plt.show()
+#removing outliers with negative outlier factor less than -1.5
+from sklearn.neighbors import LocalOutlierFactor
+#check 100 neighbors
+test_clf = LocalOutlierFactor(n_neighbors=100)
+testX=test_df[['NumDots','SubdomainLevel','PathLevel','UrlLength','NumDash','NumDashInHostname','NumUnderscore','NumPercent','NumQueryComponents',
+                   'NumAmpersand','NumHash','NumNumericChars','HostnameLength','PathLength','QueryLength','NumSensitiveWords',
+                   'PctExtResourceUrls']].to_numpy()
+#find the label of outliers 
+outlier_label=test_clf.fit_predict(testX)
+print(test_clf.negative_outlier_factor_)
+#print(clf.offset_)
+print(outlier_label)
+#identify the index of the rows to drop
+print(test_df.shape)
+rows_to_drop=test_df.iloc[test_clf.negative_outlier_factor_ < -1.5].index
+print("Outlier rows to drop: \n")
+print(rows_to_drop)
+test_df.drop(rows_to_drop,inplace=True)
+print(test_df.shape)
+#box plot still has additional outlier dots, but the shape was notably updated
+#plt.figure()
+#test_df[['NumDots', 'PathLevel', 'UrlLength', 'NumDash']].plot.box()
+#plt.show()
+#------------------------------------------------------------------------
+from sklearn.preprocessing import StandardScaler
+x=test_df[['NumDots','SubdomainLevel','PathLevel','UrlLength','NumDash','NumDashInHostname','NumUnderscore','NumPercent','NumQueryComponents',
+                   'NumAmpersand','NumHash','NumNumericChars','HostnameLength','PathLength','QueryLength','NumSensitiveWords',
+                   'PctExtResourceUrls']].to_numpy()
+scaler=StandardScaler() 
+#plt.boxplot(x) 
+scaler.fit(x)
+print(scaler.mean_)
+print(scaler.var_)
+#scale the x values
+x=scaler.transform(x)
+test_df[['NumDotsNorm','SubdomainLevelNorm','PathLevelNorm','UrlLengthNorm','NumDashNorm','NumDashInHostnameNorm','NumUnderscoreNorm',
+                    'NumPercentNorm','NumQueryComponentsNorm','NumAmpersandNorm','NumHashNorm','NumNumericCharsNorm','HostnameLengthNorm',
+                    'PathLengthNorm','QueryLengthNorm','NumSensitiveWordsNorm','PctExtResourceUrlsNorm']]=x
+
+#plt.figure()
+#df[['NumDotsNorm', 'PathLevelNorm', 'UrlLengthNorm', 'NumDashNorm']].plot.box()
+#plt.show()
+print("Shape after normalizing data: " + str(test_df.shape))
+#------------------------------------------------------------------------
+#clean up old columns:
+test_df.drop(columns=['NumDots','SubdomainLevel','PathLevel','UrlLength','NumDash','NumDashInHostname','NumUnderscore','NumPercent','NumQueryComponents',
+                   'NumAmpersand','NumHash','NumNumericChars','HostnameLength','PathLength','QueryLength','NumSensitiveWords',
+                   'PctExtResourceUrls'], inplace=True)
+print(test_df.columns)
+print("Shape after final clean up of TEST data: " + str(test_df.shape))
+#-------------------------------------------------
+#           FINAL TEST MODEL RESULTS 
+#-------------------------------------------------
+clf = svm.SVC(C=15,kernel='rbf')
+clf.fit(testX, Y)
+Y_pre=clf.predict(testX)
+
+finalDF = pd.DataFrame(Y_pre) #add id too
+
